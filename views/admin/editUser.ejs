@@ -1,0 +1,23 @@
+<%- include('../include/head.ejs') %>
+
+<main>
+<form   action="/editUser" method="post"> 
+    <label for="oldPassword">old password</label>
+    <input type="password" name="oldPassword" id="oldPassword" required>
+
+    <label for="password">new Password</label>
+    <input type="password" name="password" id="password" required>
+    
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" required>  
+    
+    <label for="avatar">avatar</label>
+    <input type="file" name="avatar" id="avatar">  
+    <input type="hidden" name="_csrf" value="<%=csrfToken%>">
+
+    <button class="btn" type="submit" >Done</button>
+
+</form>    
+</main>
+
+<%- include('../include/end.ejs') %>

@@ -1,0 +1,18 @@
+<%- include('../include/head.ejs') %>
+
+<main>
+
+
+   <a href="/allUsers">allUsers</a>
+
+   <form action="/getUserByName" method="post">
+    <label for="name">find user by name </label>
+    <input type="text" name="name" id="name">
+    <input type="hidden" name="_csrf" value="<%=csrfToken%>">
+    <button type="submit">done</button>
+
+   </form> 
+    
+</main>
+
+<%- include('../include/end.ejs') %>

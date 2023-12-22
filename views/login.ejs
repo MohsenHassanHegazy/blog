@@ -1,0 +1,20 @@
+<%- include('./include/head.ejs') %>
+<main> 
+
+
+    <form  action="/loginpost" method="POST">
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email"  value="<%=oldInput.email%>" required>  
+
+        <label for="password">password</label>
+        <input type="password" name="password" id="password" value="<%=oldInput.password%>" required> 
+
+        <input type="hidden" name="_csrf" value="<%=csrfToken%>">
+        <button id="btn" type="submit">login</button>
+    </form>
+
+</main>
+
+<%- include('./include/end.ejs') %>
+
+    

@@ -1,0 +1,15 @@
+<%- include('../include/head.ejs') %>
+
+<main>
+<form   action="/banUser" method="post"> 
+<label for="date">banned until</label>
+<input type="date" name="date" id="date" required>
+<input type="hidden" name="_csrf" value="<%=csrfToken%>">
+<input type="hidden" name="userId" value="<%userId%>">
+<button type="submit">done</button>
+
+
+</form>    
+</main>
+
+<%- include('../include/end.ejs') %>

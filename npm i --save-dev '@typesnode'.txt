@@ -1,0 +1,3 @@
+npm i --save-dev '@typesnode'
+
+npm install -g typescript@4.1.5

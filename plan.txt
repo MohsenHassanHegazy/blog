@@ -1,0 +1,29 @@
+satisfy Wagdy
+
+controls :
+edit and delete post          d
+edit and delete comments      d
+verify email "mailGun"        d
+
+
+CRTF protection                d
+
+image file system              d
+
+change user data:              
+rest password                   d
+name                            d
+avatar                          d
+
+
+CRTF 
+
+adman dashBoard :
+delete post                     d
+delete users                    d
+delete comments                 d
+ban users for a time            d
+
+front end :
+CSS 
+sockets                         d

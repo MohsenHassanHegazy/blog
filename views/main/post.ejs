@@ -1,0 +1,170 @@
+<%- include('../include/head.ejs') %>
+<main>
+  <% if(logedUserId === userId) {  %>      
+      <form action="/edit" method="GET">
+        <input type="hidden" name="postId" id="postId" value="<%=postId%>">
+        <button type="submit">edit post</button>
+      </form>
+
+    <% } %>
+    <div class="comments" >
+      <h1><%=post.title %></h4>
+        <div class="poster">
+
+          <img src="/<%=post.posterUrl%>" alt="<%=post.posterUrl %>">
+        </div>
+      <input type="hidden" name="postId" id="postId" value="<%=postId%>">
+      <h4><%=post.content %></h2>
+    </div>
+  <h1>_______________________________________________</h1>
+<form action="/getComments/<%=postId%>" method="get" id="commentsBtn">
+  <button type="submit" >comments</button>
+
+</form>
+
+  <div id="comments" >
+
+
+  </div>
+<form action="/comment" method="POST" >
+
+<input type="text" name="content" id="content"  required >
+<input type="hidden" name="postId" id="postId" value="<%=postId%>">
+<input type="hidden" name="_csrf" value="<%=csrfToken%>">
+
+<button type="submit"> comment</button>    
+
+</form>
+
+<input type="hidden" id="token"  value="<%=csrfToken%>">
+<input type="hidden" id="postId" value="<%=postId%>">
+
+
+</main>
+<script>
+   $(function () {
+        let socket = io();
+        socket.on("newComment",(newComment)=>{
+        console.log(newComment.msg)
+        
+        let div = document.getElementById('comments');
+        let comment;
+            comment.innerHTML=`        
+    <h2>${newComment.comment.name}</h2>
+    <h3>${newComment.comment.content}</h3>
+    <h4> 0 likes</h4>
+    <h4> 0 DisLikes</h4>
+            `
+div.appendChild(comment)
+
+
+})
+
+
+    });
+    $(function () {
+       var socket = io();
+       socket.on("getReplay",(replays)=>{
+        var id =replays.id;
+        var arr =replays.arr
+
+        var div = document.getElementById(id);
+        console.log(id,arr);
+
+       for(var i =0;i!=arr.length;i++){
+         
+         var replay =replays.arr[i];
+  
+         var h2  =document.createElement("h2");
+         var node1 =document.createTextNode(replay.name);
+         h2.appendChild(node1);
+         div.appendChild(h2);
+  
+         var h3  =document.createElement("h3");
+         var node2 =document.createTextNode(replay.content);
+         h3.appendChild(node2)
+         div.appendChild(h3);
+  
+         var h4  =document.createElement("h4");
+         var node3 =document.createTextNode(replay.likes+'likes');
+         h4.appendChild(node3);
+         div.appendChild(h4);
+  
+         var h44  =document.createElement("h4");
+         var node4 =document.createTextNode(replay.dislikes+'dislikes');
+         h44.appendChild(node4);
+         div.appendChild(h44);
+        }
+
+  
+
+
+})
+
+
+});
+$(function () {
+  var socket = io();
+  socket.on("getComments",(comments)=>{
+    var btn =document.getElementById('commentsBtn');
+    btn.parentElement.removeChild(btn);
+    
+    var comDiv = document.getElementById('comments');
+         var token =document.getElementById("token");
+         var postId = document.getElementById('postId');
+         var tok =token.value 
+         var posid = postId.value 
+         for(var i =0;i!=comments.arr.length;i++){
+
+          var comment =comments.arr[i];
+          var div = document.createElement('div');
+              div.innerHTML =`         
+    <h2>${comment.name}</h2>
+    <h3>${comment.content}</h3>
+    <h4> ${comment.likes} likes</h4>
+    <h4> ${comment.dislikes} DisLikes</h4>
+    <form action="/replay" method="POST">
+        <input type="text" name="content" id="content" required >
+        <input type="hidden" name="commentId" id="commentId" value="${comment.id}">
+        <input type="hidden" name="postId" value="${posid}">
+        <input type="hidden" name="_csrf" value="${tok}">
+        <button type="submit"> replay</button>  
+        
+      </form>
+      <form action="/likeComment" method="post">
+        <input type="hidden" name="status" id="status" value="1">
+        <input type="hidden" name="commentId" id="commentId" value="${comment.id}">
+        <input type="hidden" name="_csrf" value="${tok}">
+        <button type="submit" >like</button>
+      </form>
+       <form action="/likeComment" method="post">
+        <input type="hidden" name="status" id="status" value="1">
+        <input type="hidden" name="commentId" id="commentId" value="${comment.id}">
+        <input type="hidden" name="_csrf" value="${tok}">
+        <button type="submit" >dislike</button>
+       </form>
+       <form action="/getReplay/${comment.id} " method="GET">
+        <button type="submit" >replays</button>
+       </form>
+       <div id = "${comment.id}"></div> 
+       <h4>__________________________________</h4>  
+              `
+          comDiv.appendChild(div);
+        }
+
+        })
+
+
+   });
+
+
+
+
+
+</script>
+
+
+
+<%- include('../include/end.ejs') %>
+
+    

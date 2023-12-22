@@ -1,0 +1,22 @@
+<%- include('../include/head.ejs') %>
+<main>
+  <form action="/newPost" method="post"  enctype="multipart/form-data">
+  <label for="title">title</label>
+  <input type="text" name="title" id="title" value="<%=oldinput.title%>"> 
+
+  <label for="content">content</label>
+  <input type="text" name="content" id="content" value="<%=oldinput.content%>">
+
+  <label for="image">image</label>
+  <input type="file" name="image" id="image">  
+  <input type="hidden" name="_csrf" value="<%=csrfToken%>">
+
+
+  <button type="submit">make new post</button>
+
+  </form>
+    
+</main>
+<%- include('../include/end.ejs') %>
+
+    

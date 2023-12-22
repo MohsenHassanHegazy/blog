@@ -1,0 +1,20 @@
+<%- include('./include/head.ejs') %>
+
+<main>
+    <% if(errors){ for(let i =0;i!=errors.length;i++){ error=errors[i];  %>
+        <div><%=error.msg%></div>
+             <% } %>
+   <% } %>
+   <p>a code was sent to your email please check your inbox </p>
+<form   action="/validateEmail" method="post"> 
+    <label for="code">enter your code here</label>
+    <input type="text" name="code" id="code" required>
+
+    <input type="hidden" name="_csrf" value="<%=csrfToken%>">
+    <button class="btn" type="submit" >send</button>
+</form>    
+
+<a href="/validateEmail">click here to resend the email</a>
+</main>
+
+<%- include('./include/end.ejs') %>

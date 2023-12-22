@@ -1,0 +1,21 @@
+<%- include('../include/head.ejs') %>
+<main>
+  <form action="/newPost" method="post">
+  <label for="title">title</label>
+  <input type="text" name="title" id="title" value="<%=oldInput.title%>"> 
+
+  <label for="content">content</label>
+  <input type="text" name="content" id="content" value="<%=oldInput.content%>">
+
+  <label for="posterUrl">posterUrl</label>
+  <input type="file" name="posterUrl" id="poster">  
+  <input type="hidden" name="_csrf" value="<%=csrfToken%>">
+
+  <button type="submit">Done</button>
+
+  </form>
+    
+</main>
+<%- include('../include/end.ejs') %>
+
+    

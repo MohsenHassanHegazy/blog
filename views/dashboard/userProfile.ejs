@@ -1,0 +1,20 @@
+<%- include('../include/head.ejs') %>
+
+<main>
+<img src="<%=user.avatar%>" alt="user.avatar">
+<p><%=user.name%></p>
+<a href="/posts/<%=user._id %>"> <%= user.name %>'s posts</a>
+<% if(isAdmin){ %>
+    <a href="/banUser/<%=user._id%>">ban</a>
+<% } %> 
+
+<% if(user._id = logedUserId){ %>
+    <a href="/editUser">edit profile</a>
+<% } %> 
+
+
+
+
+</main>
+
+<%- include('../include/end.ejs') %>

@@ -1,0 +1,219 @@
+<%- include('../include/head.ejs') %>
+<main>
+  <% if(logedUserId === userId) {  %>      
+      <form action="/edit" method="GET">
+        <input type="hidden" name="postId" id="postId" value="<%=postId%>">
+        <button type="submit">edit post</button>
+      </form>
+
+    <% } %>
+<h1><%=post.title %></h4>
+<img src="<%=post.posterUrl%>" alt="poster">
+<input type="hidden" name="postId" id="postId" value="<%=postId%>">
+<h4><%=post.content %></h2>
+  <h1>_______________________________________________</h1>
+<form action="/getComments/<%=postId%>" method="get">
+  <button type="submit" >comments</button>
+
+</form>
+
+  <div id="comments" >
+<!-- <% for(let i =0;i!=post.comments.length;i++) { const com =post.comments[i] %> -->
+  <!-- <div id="<%=com.id%>"> -->
+<!-- <img src="<%=com.avatar%>" alt="poster"> -->
+    <!-- <h2><%=com.name%></h3>
+    <h3><%=com.content%></h2>
+    <h4><%=com.likes%> likes</h4> -->
+    <!-- <h4><%=com.dislikes%> DisLikes</h4>
+    <% if(userId === com.userId){   %>
+      <form action="/editComment" method="POST">
+        <input type="text" name="content" id="content" required >
+        <input type="hidden" name="commentId" id="commentId" value="<%=com.id%>">
+        <button type="submit">Edit</button>  
+      </form>
+      <form action="/deleteComment" method="DELETE">
+        <input type="hidden" name="commentId" id="commentId" value="<%=com.id%>">
+        <button type="submit">Delete</button>  
+      </form>
+      
+      <form action="/comment" method="POST">
+        <input type="text" name="content" id="content" required >
+        <input type="hidden" name="commentId" id="commentId" value="<%=com.id%>">
+        
+        <button type="submit"> replay</button>  
+        
+      </form>
+      <form action="/likeComment" method="post">
+        <input type="hidden" name="status" id="status" value="1">
+        <input type="hidden" name="commentId" id="commentId" value="<%=com.id%>">
+        <button type="submit" >like</button>
+      </form>
+       <form action="/likeComment" method="post">
+        <input type="hidden" name="status" id="status" value="2">
+        <input type="hidden" name="commentId" id="commentId" value="<%=com.id%>">
+        <button type="submit" >dislike</button>
+       </form>
+       <% } %>
+       <form action="/getReplay/<%=com.id%> " method="GET">
+        <button type="submit" >replays</button>
+       </form> -->
+
+      <!-- </div> -->
+   
+<!-- <% } %> -->
+
+</div>
+<form action="/comment" method="POST">
+
+<input type="text" name="content" id="content"  required >
+<input type="hidden" name="postId" id="postId" value="<%=postId%>">
+
+<button type="submit"> comment</button>    
+
+</form>
+</main>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+   $(function () {
+        var socket = io();
+        socket.on("newComment",(newComment)=>{
+        
+        var div = document.getElementById('comments');
+
+        var h2  =document.createElement("h2");
+        var node1 =document.createTextNode(newComment.comment.name);
+        h2.appendChild(node1);
+        div.appendChild(h2);
+
+        var h3  =document.createElement("h3");
+        var node2 =document.createTextNode(newComment.comment.content);
+        h3.appendChild(node2)
+        div.appendChild(h3);
+
+        var h4  =document.createElement("h4");
+        var node3 =document.createTextNode('0 likes');
+        h4.appendChild(node3);
+        div.appendChild(h4);
+
+        var h44  =document.createElement("h4");
+        var node4 =document.createTextNode('0 dislikes');
+        h44.appendChild(node4);
+        div.appendChild(h44);
+
+        return;
+
+
+})
+return;
+
+    });
+    $(function () {
+       var socket = io();
+       socket.on("getReplay",(replays)=>{
+        var id =replays.id;
+       for(var i =0;i!=replays.length;i++){
+        
+         var replay =replays.arr[i];
+         if(!replay){break;}
+
+         var div = document.getElementById(id);
+  
+         var h2  =document.createElement("h2");
+         var node1 =document.createTextNode(replay.name);
+         h2.appendChild(node1);
+         div.appendChild(h2);
+  
+         var h3  =document.createElement("h3");
+         var node2 =document.createTextNode(replay.content);
+         h3.appendChild(node2)
+         div.appendChild(h3);
+  
+         var h4  =document.createElement("h4");
+         var node3 =document.createTextNode(replay.likes+'likes');
+         h4.appendChild(node3);
+         div.appendChild(h4);
+  
+         var h44  =document.createElement("h4");
+         var node4 =document.createTextNode(replay.dislikes+'dislikes');
+         h44.appendChild(node4);
+         div.appendChild(h44);
+        }
+
+        return;
+
+
+})
+return;
+
+   });
+   $(function () {
+       var socket = io();
+       socket.on("getComments",(replays)=>{
+         console.log(replays)
+        var comDiv = document.getElementById('comments');
+         for(var i =0;i!=replays.length;i++){
+
+         var replay =replays.arr[i];
+         if(!replay){break;}
+
+         var div = document.createElement('div');
+         div.setAttribute('id',replay.id)
+           
+         var h2  =document.createElement("h2");
+         var node1 =document.createTextNode(replay.name);
+         h2.appendChild(node1);
+         div.appendChild(h2);
+  
+         var h3  =document.createElement("h3");
+         var node2 =document.createTextNode(replay.content);
+         h3.appendChild(node2)
+         div.appendChild(h3);
+  
+         var h4  =document.createElement("h4");
+         var node3 =document.createTextNode(replay.likes+' likes');
+         h4.appendChild(node3);
+         div.appendChild(h4);
+  
+         var h44  =document.createElement("h4");
+         var node4 =document.createTextNode(replay.dislikes+' dislikes');
+         h44.appendChild(node4);
+         div.appendChild(h44);
+
+         var replaysForm = document.createElement("form");
+         replaysForm.setAttribute('action','/getReplay/'+replay.id)
+         replaysForm.setAttribute('method','GET');
+         var formnode =document.createElement("button");
+         formnode.setAttribute('type','submit');
+         var t =document.createTextNode('replays');
+         formnode.appendChild(t);
+         replaysForm.appendChild(formnode);
+         div.appendChild(replaysForm);
+
+
+        var line  =document.createElement("h4");
+        var linenode =document.createTextNode('_______________________________');
+        line.appendChild(linenode);
+        div.appendChild(line);
+
+         comDiv.appendChild(div);
+        }
+        return;
+
+
+        })
+        return;
+
+   });
+
+
+
+
+
+</script>
+
+
+
+<%- include('../include/end.ejs') %>
+
+    

@@ -1,0 +1,25 @@
+<%- include('./include/head.ejs') %>
+
+<main>
+    <% if(errors){ for(let i =0;i!=errors.length;i++){ error=errors[i];  %>
+        <div><%=error.msg%></div>
+             <% } %>
+   <% } %>
+<form   action="/signup" method="post"> 
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" required>
+
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" required>
+    
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" required>  
+      
+    <input type="hidden" name="_csrf" value="<%=csrfToken%>">
+
+    <button class="btn" type="submit" >Signup</button>
+
+</form>    
+</main>
+
+<%- include('./include/end.ejs') %>
