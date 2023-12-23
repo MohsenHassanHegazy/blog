@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://git-codecommit.us-east-1.amazonaws.com/v1/repos/udemy-course-nodejs-complete"
+    "url": "https://github.com/MohsenHassanHegazy/blog.git"
   },
   "author": "",
   "license": "ISC",
@@ -29,6 +29,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.6.1",
     "multer": "*",
+    "netlify-cli": "^17.10.1",
     "path": "^0.12.7",
     "socket.io": "^4.7.2"
   },
