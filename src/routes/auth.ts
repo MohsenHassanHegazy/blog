@@ -2,6 +2,7 @@ import { Router } from "express";
 import adminControler from "../controllers/auth-controler";
 import { body } from "express-validator";
 import isAuth from "../util/isAuth";
+import validEmail from "../util/isValid";
 
 const router =Router();
 

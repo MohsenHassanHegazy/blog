@@ -2,6 +2,7 @@ import { Router } from "express";
 import adminControler from "../controllers/post-controler";
 import { body } from "express-validator";
 import isAuth from "../util/isAuth";
+import validEmail from "../util/isValid";
 
 const router =Router();
 
@@ -18,20 +19,20 @@ router.post('/replay',[
     body('content','comment can not be empty!!!')
         .isLength({min:1}),
         body('commentId','commentId not send')
-    ],isAuth,adminControler.postNewReplay);
+    ],isAuth,validEmail,adminControler.postNewReplay);
 
 router.get('/getReplay/:commentId',adminControler.getReplay)  
 
 router.get('/getComments/:postId',adminControler.getComments)    
 
-router.post('/likeComment',isAuth,adminControler.likeComment)
+router.post('/likeComment',isAuth,validEmail,adminControler.likeComment)
 
 router.post('/editComment',body('content','content is required!')
-.notEmpty(),isAuth,adminControler.editComment)
+.notEmpty(),isAuth,validEmail,adminControler.editComment)
 
-router.delete('/deleteComment',isAuth,adminControler.deleteComment)
+router.delete('/deleteComment',isAuth,validEmail,adminControler.deleteComment)
 
-router.get('/newPost',isAuth,adminControler.getNewPost);
+router.get('/newPost',isAuth,validEmail,adminControler.getNewPost);
 
 router.post('/newPost',[
     body('title','title is required!')
@@ -41,9 +42,9 @@ router.post('/newPost',[
 ],
 isAuth,adminControler.postNewPost);
 
-router.put('/editPost',isAuth,adminControler.editPost);
+router.put('/editPost',isAuth,validEmail,adminControler.editPost);
 
-router.delete('/deletePost',isAuth,adminControler.deletePost);
+router.delete('/deletePost',isAuth,validEmail,adminControler.deletePost);
 
 router.get('/post/:postId',adminControler.getPost);
 
