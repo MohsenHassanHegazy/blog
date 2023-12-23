@@ -133,8 +133,8 @@ io.on('connection',(Socket)=>{
  })
 
 mongoose
-.connect('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.1.1')
-//.connect('mongodb+srv://mohsen:DZFZpuN88Gmkbdj@cluster0test.mc0rmsv.mongodb.net/gamesWebsite?retryWrites=true&w=majority')
+// .connect('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.1.1')
+.connect('mongodb+srv://mohsen:DZFZpuN88Gmkbdj@cluster0test.mc0rmsv.mongodb.net/gamesWebsite?retryWrites=true&w=majority')
     .then(result => {
         httpServer.listen(3000);
 
