@@ -352,7 +352,6 @@ const getPost = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         }
         arr.push({ comment: c, replaies: r });
     }
-    console.log(arr);
     return res.status(200).render('../views/main/post', { postId: postId,
         userId: userId,
         pageTitle: post.title,
