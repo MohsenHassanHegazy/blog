@@ -329,15 +329,6 @@ const getPost = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         return res.status(404).json({ msg: "post not found" });
     }
     userId = post.creator.toString();
-    res.status(200).render('../views/main/post', { postId: postId, userId: userId, pageTitle: post.title, post: Object.assign({}, post._doc),
-        errors: null });
-});
-const getComments = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const postId = req.params.postId;
-    const post = yield post_1.default.findById(postId).populate('comments');
-    if (!post) {
-        return res.status(404).json({ msg: "post not found" });
-    }
     const coments = post.comments;
     const arr = [];
     for (let i = 0; i != coments.length; i++) {
@@ -349,34 +340,25 @@ const getComments = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         if (com.parent !== null) {
             continue;
         }
-        arr.push(yield commentsFunc(com));
-    }
-    yield socket_1.default.getio().emit('getComments', { arr: arr });
-    console.log('comments sent');
-    return res.status(204).send();
-});
-const getReplay = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const comId = req.params.commentId;
-    const comment = yield comment_1.default.findById(comId);
-    const arr = [];
-    if (!comment) {
-        return res.status(404);
-    }
-    ;
-    for (let i = 0; i < comment.replay.length; i++) {
-        const repId = comment.replay[i];
-        console.log(repId);
-        const replay = yield comment_1.default.findById(repId);
-        if (!replay) {
-            continue;
+        const c = yield commentsFunc(com);
+        const r = [];
+        for (let j = 0; j != com.replay.length; j++) {
+            const rId = com.replay[j];
+            const rep = yield comment_1.default.findById(rId);
+            if (!rep) {
+                continue;
+            }
+            r.push(yield commentsFunc(rep));
         }
-        const re = yield commentsFunc(replay);
-        console.log(re);
-        arr.push(re);
+        arr.push({ comment: c, replaies: r });
     }
-    yield socket_1.default.getio().emit('getReplay', { arr: arr, id: comId });
     console.log(arr);
-    return res.status(204).send();
+    return res.status(200).render('../views/main/post', { postId: postId,
+        userId: userId,
+        pageTitle: post.title,
+        post: Object.assign({}, post._doc),
+        comments: arr,
+        errors: null });
 });
 const ex = {
     getNewPost: getNewPost,
@@ -391,8 +373,6 @@ const ex = {
     getmain: getmain,
     likeComment: likeComment,
     editComment: editComment,
-    deleteComment: deleteComment,
-    getComments: getComments,
-    getReplay: getReplay
+    deleteComment: deleteComment
 };
 exports.default = ex;

@@ -126,17 +126,12 @@ app.use(
     app.use('/images',express.static('./images/'));
     
 
-    const httpServer =createServer(app);
-const io =socket.init(httpServer);
-io.on('connection',(Socket)=>{
-    console.log('user connected');
- })
 
 mongoose
 // .connect('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.1.1')
 .connect('mongodb+srv://mohsen:DZFZpuN88Gmkbdj@cluster0test.mc0rmsv.mongodb.net/gamesWebsite?retryWrites=true&w=majority')
     .then(result => {
-        httpServer.listen(3000);
+        app.listen(3000);
 
 
     })

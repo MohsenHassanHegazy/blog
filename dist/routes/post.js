@@ -21,8 +21,6 @@ router.post('/replay', [
         .isLength({ min: 1 }),
     (0, express_validator_1.body)('commentId', 'commentId not send')
 ], isAuth_1.default, isValid_1.default, post_controler_1.default.postNewReplay);
-router.get('/getReplay/:commentId', post_controler_1.default.getReplay);
-router.get('/getComments/:postId', post_controler_1.default.getComments);
 router.post('/likeComment', isAuth_1.default, isValid_1.default, post_controler_1.default.likeComment);
 router.post('/editComment', (0, express_validator_1.body)('content', 'content is required!')
     .notEmpty(), isAuth_1.default, isValid_1.default, post_controler_1.default.editComment);

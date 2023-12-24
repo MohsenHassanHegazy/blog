@@ -393,20 +393,6 @@ const getPost = async (req: express.Request, res: express.Response, next: expres
    }
    userId = post.creator.toString();
 
-   res.status(200).render('../views/main/post',
-      { postId: postId,userId:userId, pageTitle: post.title, post: { ...post._doc } ,
-      errors:null});
-}
-
-const getComments =async(req: express.Request, res: express.Response, next: express.NextFunction) =>{
-   
-   const postId = req.params.postId;
-
-   const post = await Post.findById(postId).populate('comments');
-
-   if (!post) {
-      return res.status(404).json({ msg: "post not found" })
-   }
    const coments = post.comments;
    const arr: any[] = [];
 
@@ -415,35 +401,29 @@ const getComments =async(req: express.Request, res: express.Response, next: expr
       const com =await Comment.findById(comId)
       if(!com){continue;}
       if(com.parent!==null){continue;}
-      arr.push( await commentsFunc(com));
+      const c = await commentsFunc(com);
+      const r =[];
+         for(let j=0;j!=com.replay.length;j++){
+            const rId =com.replay[j];
+            const rep =await Comment.findById(rId)
+            if(!rep){continue;}
+            r.push(await commentsFunc(rep));
+          }
+      arr.push({comment:c,replaies:r})  ;  
    }
- 
-   await socket.getio().emit('getComments',{arr:arr})
-   console.log('comments sent');
 
- return res.status(204).send();
+   
 
- }
+  return res.status(200).render('../views/main/post',
+      { postId: postId,
+        userId:userId, 
+        pageTitle: post.title, 
+        post: { ...post._doc } ,
+        comments:arr,
+      errors:null});
+}
 
-const getReplay =async(req: express.Request, res: express.Response, next: express.NextFunction) =>{
-   const comId =req.params.commentId;
-   const comment =await Comment.findById(comId);
-   const arr:any =[];
-   if(!comment){return res.status(404)};
-   for(let i =0;i<comment.replay.length;i++){
-      const repId = comment.replay[i];
-      console.log(repId);
-      const replay =await Comment.findById(repId);
-      if(!replay){continue;}
-      const re = await commentsFunc(replay);
-      console.log(re);
-      arr.push(re);
-   }
-  await socket.getio().emit('getReplay',{arr:arr,id:comId})
-    console.log(arr);
 
-   return res.status(204).send();
- }
 
 
 const ex = {
@@ -459,9 +439,7 @@ const ex = {
    getmain: getmain,
    likeComment:likeComment,
    editComment:editComment,
-   deleteComment:deleteComment,
-   getComments:getComments,
-   getReplay:getReplay
+   deleteComment:deleteComment
 }
 
 export default ex;

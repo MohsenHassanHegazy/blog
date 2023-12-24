@@ -20,10 +20,7 @@ router.post('/replay',[
         .isLength({min:1}),
         body('commentId','commentId not send')
     ],isAuth,validEmail,adminControler.postNewReplay);
-
-router.get('/getReplay/:commentId',adminControler.getReplay)  
-
-router.get('/getComments/:postId',adminControler.getComments)    
+ 
 
 router.post('/likeComment',isAuth,validEmail,adminControler.likeComment)
 

@@ -13,8 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const http_1 = require("http");
-const socket_1 = __importDefault(require("./socket"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const post_1 = __importDefault(require("./routes/post"));
 const auth_1 = __importDefault(require("./routes/auth"));
@@ -82,15 +80,10 @@ app.use(auth_1.default);
 app.use(post_1.default);
 app.use('/css', express_1.default.static('./css/'));
 app.use('/images', express_1.default.static('./images/'));
-const httpServer = (0, http_1.createServer)(app);
-const io = socket_1.default.init(httpServer);
-io.on('connection', (Socket) => {
-    console.log('user connected');
-});
 mongoose_1.default
     // .connect('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.1.1')
     .connect('mongodb+srv://mohsen:DZFZpuN88Gmkbdj@cluster0test.mc0rmsv.mongodb.net/gamesWebsite?retryWrites=true&w=majority')
     .then(result => {
-    httpServer.listen(3000);
+    app.listen(3000);
 });
 // app.listen(3000);
