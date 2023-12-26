@@ -17,6 +17,8 @@ const post_1 = __importDefault(require("../models/post"));
 const comment_1 = __importDefault(require("../models/comment"));
 const express_validator_1 = require("express-validator");
 const socket_1 = __importDefault(require("../socket"));
+const imgur_1 = require("imgur");
+const fs_1 = __importDefault(require("fs"));
 const getmain = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     res.redirect('/posts');
 });
@@ -56,11 +58,16 @@ const postNewPost = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         });
     }
     const posterUrl = req.file.path.replace("\\", "/");
-    ;
+    const client = new imgur_1.ImgurClient({ clientId: '3626e661d194984' });
+    const response = yield client.upload({
+        image: fs_1.default.readFileSync('./' + posterUrl),
+        type: 'stream',
+    });
+    console.log(response.data);
     const newPost = new post_1.default({
         title: req.body.title,
         content: req.body.content,
-        posterUrl: posterUrl,
+        posterUrl: response.data.link,
         creator: userId
     });
     console.log('userId = ', userId);

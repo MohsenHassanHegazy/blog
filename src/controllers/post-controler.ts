@@ -5,7 +5,9 @@ import express from "express";
 import bcrypt from "bcryptjs"
 import { ValidationError, validationResult } from "express-validator";
 import socket from "../socket";
-
+import { ImgurClient } from 'imgur';
+import fs from 'fs'
+import { Stream } from "stream";
 
 
 
@@ -51,12 +53,20 @@ const postNewPost = async (req: express.Request, res: express.Response, next: ex
          errors:errors.array()
       });
     }
-   const posterUrl =req.file.path.replace("\\" ,"/");;
+   const posterUrl =req.file.path.replace("\\" ,"/");
+
+   const client = new ImgurClient({ clientId: '3626e661d194984' });
+   
+   const response = await client.upload({
+      image: fs.readFileSync('./'+posterUrl),
+      type: 'stream', 
+    });
+    console.log(response.data);
 
    const newPost = new Post({
       title: req.body.title,
       content: req.body.content, 
-      posterUrl:posterUrl,
+      posterUrl:response.data.link,
       creator: userId
    })
 
