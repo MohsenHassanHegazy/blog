@@ -17,8 +17,7 @@ const post_1 = __importDefault(require("../models/post"));
 const comment_1 = __importDefault(require("../models/comment"));
 const express_validator_1 = require("express-validator");
 const socket_1 = __importDefault(require("../socket"));
-const imgur_1 = require("imgur");
-const fs_1 = __importDefault(require("fs"));
+const cloudinary_1 = require("cloudinary");
 const getmain = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     res.redirect("/posts");
 });
@@ -58,18 +57,37 @@ const postNewPost = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         });
     }
     const posterUrl = req.file.path.replace("\\", "/");
-    const client = new imgur_1.ImgurClient({ clientId: process.env.clientId });
-    // console.log(client);
-    client.on("uploadProgress", (progress) => console.log(progress));
-    const response = yield client.upload({
-        image: fs_1.default.readFileSync("./" + posterUrl),
-        type: "stream",
+    // Configuration
+    cloudinary_1.v2.config({
+        cloud_name: process.env.cloudName,
+        api_key: process.env.APIkey,
+        api_secret: process.env.APIsecret, // Click 'View Credentials' below to copy your API secret
     });
-    console.log("response is :", response.data);
+    // Upload an image
+    const uploadResult = yield cloudinary_1.v2.uploader
+        .upload(posterUrl, {
+        public_id: req.file.filename,
+    })
+        .catch((error) => {
+        console.log(error);
+    });
+    console.log(uploadResult);
+    //imgur
+    // const client = new ImgurClient({
+    //   clientId: process.env.clientId,
+    //   clientSecret: process.env.clientsecret,
+    // });
+    // // console.log(client);
+    // // client.on("uploadProgress", (progress) => console.log(progress));
+    // const response = await client.upload({
+    //   image: fs.readFileSync("./" + posterUrl),
+    //   type: "stream",
+    // });
+    // console.log("response is :", response.data);
     const newPost = new post_1.default({
         title: req.body.title,
         content: req.body.content,
-        posterUrl: response.data.link,
+        posterUrl: uploadResult.url,
         creator: userId,
     });
     console.log("userId = ", userId);

@@ -9,6 +9,8 @@ import { ImgurClient } from "imgur";
 import fs from "fs";
 import { Stream } from "stream";
 
+import { v2 as cloudinary } from "cloudinary";
+
 const getmain = async (
   req: express.Request,
   res: express.Response,
@@ -63,22 +65,44 @@ const postNewPost = async (
   }
   const posterUrl = req.file.path.replace("\\", "/");
 
-  const client = new ImgurClient({ clientId: process.env.clientId });
-
-  // console.log(client);
-
-  client.on("uploadProgress", (progress) => console.log(progress));
-
-  const response = await client.upload({
-    image: fs.readFileSync("./" + posterUrl),
-    type: "stream",
+  // Configuration
+  cloudinary.config({
+    cloud_name: process.env.cloudName,
+    api_key: process.env.APIkey,
+    api_secret: process.env.APIsecret, // Click 'View Credentials' below to copy your API secret
   });
-  console.log("response is :", response.data);
+
+  // Upload an image
+  const uploadResult: any = await cloudinary.uploader
+    .upload(posterUrl, {
+      public_id: req.file.filename,
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+
+  console.log(uploadResult);
+
+  //imgur
+  // const client = new ImgurClient({
+  //   clientId: process.env.clientId,
+  //   clientSecret: process.env.clientsecret,
+  // });
+
+  // // console.log(client);
+
+  // // client.on("uploadProgress", (progress) => console.log(progress));
+
+  // const response = await client.upload({
+  //   image: fs.readFileSync("./" + posterUrl),
+  //   type: "stream",
+  // });
+  // console.log("response is :", response.data);
 
   const newPost = new Post({
     title: req.body.title,
     content: req.body.content,
-    posterUrl: response.data.link,
+    posterUrl: uploadResult.url,
     creator: userId,
   });
 
