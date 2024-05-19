@@ -1,455 +1,533 @@
-import User from "../models/user"
+import User from "../models/user";
 import Post from "../models/post";
-import Comment from "../models/comment"
+import Comment from "../models/comment";
 import express from "express";
-import bcrypt from "bcryptjs"
+import bcrypt from "bcryptjs";
 import { ValidationError, validationResult } from "express-validator";
 import socket from "../socket";
-import { ImgurClient } from 'imgur';
-import fs from 'fs'
+import { ImgurClient } from "imgur";
+import fs from "fs";
 import { Stream } from "stream";
 
+const getmain = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  res.redirect("/posts");
+};
 
+const getNewPost = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  return res.render("../views/admin/newPost", {
+    pageTitle: "new post",
+    errors: null,
+    oldinput: {
+      title: "",
+      content: "",
+      posterUrl: "",
+    },
+  });
+};
 
-const getmain = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-   res.redirect('/posts')
-}
-
-const getNewPost = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-   return res.render('../views/admin/newPost',{
-      pageTitle:'new post',
-      errors:null,
-         oldinput:{
-            title:'',
-            content:'',
-            posterUrl:''
-          }
-    })
-  
-}
-
-
-
-const postNewPost = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-   if (!req.session.user) {
-      return res.json({error:'must login'})}
-   const userId = req.session.user._id;
-   console.log(req.file?.path);
-   if(!req.file){
-      return res.render('../views/admin/newPost',{
-         pageTitle:'new post',
-         errors:[{msg:'image is required!'}],
-         oldinput:{
-            title:req.body.title,
-            content:req.body.content,
-            posterUrl:''
-          }
-       })
-    }
-   const errors =validationResult(req);
-
-   if(!errors.isEmpty()){
-      return res.json({
-         errors:errors.array()
-      });
-    }
-   const posterUrl =req.file.path.replace("\\" ,"/");
-
-   const client = new ImgurClient({ clientId: '3626e661d194984' });
-   
-   const response = await client.upload({
-      image: fs.readFileSync('./'+posterUrl),
-      type: 'stream', 
+const postNewPost = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!req.session.user) {
+    return res.json({ error: "must login" });
+  }
+  const userId = req.session.user._id;
+  console.log(req.file?.path);
+  if (!req.file) {
+    return res.render("../views/admin/newPost", {
+      pageTitle: "new post",
+      errors: [{ msg: "image is required!" }],
+      oldinput: {
+        title: req.body.title,
+        content: req.body.content,
+        posterUrl: "",
+      },
     });
-    console.log(response.data);
+  }
+  const errors = validationResult(req);
 
-   const newPost = new Post({
-      title: req.body.title,
-      content: req.body.content, 
-      posterUrl:response.data.link,
-      creator: userId
-   })
+  if (!errors.isEmpty()) {
+    return res.json({
+      errors: errors.array(),
+    });
+  }
+  const posterUrl = req.file.path.replace("\\", "/");
 
-   console.log('userId = ', userId);
+  const client = new ImgurClient({ clientId: process.env.clientId });
 
-   const post = await newPost.save();
+  const response = await client.upload({
+    image: fs.readFileSync("./" + posterUrl),
+    type: "stream",
+  });
+  console.log(response.data);
 
+  const newPost = new Post({
+    title: req.body.title,
+    content: req.body.content,
+    posterUrl: response.data.link,
+    creator: userId,
+  });
 
-   const user = await User.findById(userId);
-   if (!user) {
-      throw new Error('ladkj');
-   }
-   user.posts.push(post._id);
-   await user.save()
-   res.status(201).redirect('/posts');
-}
+  console.log("userId = ", userId);
 
-const getEditPost =async (req: express.Request, res: express.Response, next: express.NextFunction) =>{
-   if (!req.session.user) {
-      return res.json({error:'must login'})}
-   const postId = req.body.postId;
-   const post = await Post.findById(postId);
+  const post = await newPost.save();
 
-   if (!post) { return res.status(404).json({ message: 'Post not found.' }); }
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error("ladkj");
+  }
+  user.posts.push(post._id);
+  await user.save();
+  res.status(201).redirect("/posts");
+};
 
-   if (post.creator.toString() !== req.session.user._id.toString()) {
-      return res.status(403).json({ message: 'not authorized!!!!!!!!!!!!!!!!!!' })
-   }
+const getEditPost = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!req.session.user) {
+    return res.json({ error: "must login" });
+  }
+  const postId = req.body.postId;
+  const post = await Post.findById(postId);
 
-   return res.status(200).render('../views/admin/editPost', {
-      pageTitle: 'newPost',
-      errors:null,
-      oldInput:{
-         title:post.title,
-         content:post.content,
-         posterUrl:post.posterUrl
-       }
-   })
+  if (!post) {
+    return res.status(404).json({ message: "Post not found." });
+  }
 
- }
+  if (post.creator.toString() !== req.session.user._id.toString()) {
+    return res
+      .status(403)
+      .json({ message: "not authorized!!!!!!!!!!!!!!!!!!" });
+  }
 
-const editPost = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-   if (!req.session.user) {
-      return res.json({error:'must login'})}
-   const postId = req.body.postId;
-   const post = await Post.findById(postId);
+  return res.status(200).render("../views/admin/editPost", {
+    pageTitle: "newPost",
+    errors: null,
+    oldInput: {
+      title: post.title,
+      content: post.content,
+      posterUrl: post.posterUrl,
+    },
+  });
+};
 
-   if (!post) { return res.status(404).json({ message: 'Post not found.' }); }
+const editPost = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!req.session.user) {
+    return res.json({ error: "must login" });
+  }
+  const postId = req.body.postId;
+  const post = await Post.findById(postId);
 
-   if (post.creator.toString() !== req.session.user._id.toString()) {
-      return res.status(403).json({ message: 'not authorized!!!!!!!!!!!!!!!!!!' })
-   }
+  if (!post) {
+    return res.status(404).json({ message: "Post not found." });
+  }
 
-   post.title = req.body.title;
-   post.content = req.body.content;
+  if (post.creator.toString() !== req.session.user._id.toString()) {
+    return res
+      .status(403)
+      .json({ message: "not authorized!!!!!!!!!!!!!!!!!!" });
+  }
 
+  post.title = req.body.title;
+  post.content = req.body.content;
 
-   await post.save();
+  await post.save();
 
-   return res.status(201).json({post:post._doc})
+  return res.status(201).json({ post: post._doc });
+};
 
-}
+const deletePost = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!req.session.user) {
+    return res.redirect("/login");
+  }
 
-const deletePost = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-   if (!req.session.user) {
-      return res.redirect('/login')
-   }
+  const postId = req.body.postId;
 
-   const postId = req.body.postId;
+  const post = await Post.findById(postId);
 
-   const post = await Post.findById(postId);
+  if (!post) {
+    return res.status(404).json({ message: "Post not found." });
+  }
 
-   if (!post) { return res.status(404).json({ message: 'Post not found.' }); }
+  if (
+    post.creator.toString() !== req.session.user._id.toString() &&
+    !req.session.user.isadmin
+  ) {
+    return res
+      .status(403)
+      .json({ message: "not authorized!!!!!!!!!!!!!!!!!!" });
+  }
+  await Post.findByIdAndDelete(postId);
 
-   if (post.creator.toString() !== req.session.user._id.toString() && !req.session.user.isadmin) {
-      return res.status(403).json({ message: 'not authorized!!!!!!!!!!!!!!!!!!' });
-   }
-   await Post.findByIdAndDelete(postId);
+  const user = await User.findById(req.session.user._id).populate("posts");
+  if (user) {
+    const newposts = user.posts.filter((p: any) => p._id.toString() !== postId);
 
-   const user = await User.findById(req.session.user._id).populate('posts');
-   if (user) {
-      const newposts = user.posts.filter((p: any) => p._id.toString() !== postId)
+    user.posts = newposts;
+    await user.save();
 
-      user.posts = newposts;
-      await user.save();
+    await Comment.deleteMany({ postId: postId });
+    return res.status(200).json({ user: user._doc });
+  }
+};
 
-      
-      await Comment.deleteMany({postId:postId})
-      return res.status(200).json({user:user._doc})
-   }
+const postNewComment = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!req.session.user) {
+    return res.redirect("/login");
+  }
 
-}
+  const errors = validationResult(req);
+  const userId = req.session.user._id;
 
-const postNewComment = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-   if (!req.session.user) {
-      return res.redirect('/login') }
+  if (!errors.isEmpty()) {
+    return res.json({ errors: errors.array() });
+  }
+  const newComment = new Comment({
+    postId: req.body.postId,
+    content: req.body.content,
+    userId: userId,
+  });
+  const comment = await newComment.save();
 
-   const errors =validationResult(req);
-   const userId = req.session.user._id;
+  const user = await User.findById(userId);
 
+  if (user) {
+    user.comments.push(comment._id);
+    await user.save();
+  } else {
+    return res.redirect("/login");
+  }
 
-   if(!errors.isEmpty()){
-      return res.json({errors:errors.array()});
+  const post = await Post.findById(req.body.postId);
+  if (post) {
+    post.comments.push(comment._id);
+    await post.save();
+  }
+
+  socket.getio().emit("newComment", {
+    comment: {
+      name: user.name,
+      content: comment.content,
+      likes: 0,
+      dislikes: 0,
+      userId: user._id.toString(),
+    },
+    msg: "new comment was posted",
+  });
+
+  return res.status(204).send();
+};
+
+const postNewReplay = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!req.session.user) {
+    return res.json({ error: "must login" });
+  }
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.json({ errors: errors.array() });
+  }
+  const userId = req.session.user._id;
+  console.log(req.body);
+  const parent = await Comment.findById(req.body.commentId);
+  if (!parent) {
+    console.log("post not found!!!!!");
+    return res.status(404);
+  }
+  const replay = new Comment({
+    postId: req.body.postId,
+    content: req.body.content,
+    userId: userId,
+    parent: parent._id,
+  });
+
+  await replay.save();
+  parent.replay.push(replay._id);
+  await parent.save();
+  return res.status(204).send();
+};
+
+const likeComment = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!req.session.user) {
+    return res.json({ error: "must login" });
+  }
+
+  const commentId = req.body.commentId;
+  const status = req.body.status;
+  const comment = await Comment.findById(commentId);
+  if (!comment) {
+    return res.status(500).json({ message: "comment not found" });
+  }
+
+  const user = await User.findById(req.session.user._id);
+  if (!user) {
+    return res.status(500).json({ message: "user not found" });
+  }
+
+  console.log(status);
+  if (status == 1) {
+    const arr = user.likedComments;
+    for (let i = 0; i != arr.length; i++) {
+      if (arr[i].toString() === commentId) {
+        return res.status(200).redirect("/post/" + req.body.postId);
+      }
     }
-   const newComment = new Comment({
-      postId: req.body.postId,
-      content: req.body.content,
-      userId: userId
-   })
-   const comment = await newComment.save();
-
-   const user = await User.findById(userId);
-
-   if (user) {
-      user.comments.push(comment._id);
-      await user.save();
-   }
-   else{
-      return res.redirect('/login')
-    } 
-
-      const post = await Post.findById(req.body.postId);
-      if (post) {
-         post.comments.push(comment._id);
-         await post.save();
-         
+    user.likedComments.push(commentId);
+    comment.likes++;
+  } else if (status == 2) {
+    const arr = user.dislikedComments;
+    for (let i = 0; i != arr.length; i++) {
+      if (arr[i].toString() === commentId) {
+        return res.status(200).redirect("/post/" + req.body.postId);
       }
-
-   
-  socket.getio().emit('newComment',
-   { comment:{
-      name:user.name,
-      content:comment.content,
-      likes:0,
-      dislikes:0,
-      userId:user._id.toString()}
-      ,
-      msg:'new comment was posted'
-      
-   })
-
-
- 
-   return res.status(204).send()
-}
-
-const postNewReplay = async (req: express.Request, res: express.Response, next: express.NextFunction) =>{
-   if (!req.session.user) {
-      return res.json({error:'must login'})}
-
-   const errors =validationResult(req);
-   if(!errors.isEmpty()){
-      return res.json({errors:errors.array()});
     }
-   const userId = req.session.user._id;
-   console.log(req.body);
-   const parent =await Comment.findById(req.body.commentId);
-   if(!parent){
-      console.log('post not found!!!!!')
-      return res.status(404)}
-   const replay =new Comment({
-      postId: req.body.postId,
-      content: req.body.content,
-      userId: userId,
-      parent:parent._id
-    })
+    user.dislikedComments.push(commentId);
+    comment.dislikes++;
+  }
+  await comment.save();
+  await user.save();
 
-    await replay.save();
-    parent.replay.push(replay._id);
-    await parent.save();
-    return res.status(204).send();
+  res.status(200).json({ user: user._doc, comment: comment._doc });
+};
 
- } 
+const editComment = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!req.session.user) {
+    return res.json({ error: "must login" });
+  }
+  const commentId = req.body.commentId;
 
-const likeComment = async (req: express.Request, res: express.Response, next: express.NextFunction) =>{
-   if (!req.session.user) {
-      return res.json({error:'must login'})}
-   
-   const commentId = req.body.commentId;
-   const status =req.body.status;
-   const comment =await Comment.findById(commentId);
-   if(!comment){return res.status(500).json({message:'comment not found'})}
+  // console.log(req.body);
 
-   const user =await User.findById(req.session.user._id);
-   if(!user){return res.status(500).json({message:'user not found'}) }
-    
-   console.log(status);
-   if(status == 1){
-      const arr =user.likedComments;
-      for(let i =0;i!=arr.length;i++){if(arr[i].toString()===commentId){return res.status(200).redirect('/post/' + req.body.postId) }  }
-      user.likedComments.push(commentId);
-      comment.likes++;
-    }
-    else if(status ==2){
-      const arr =user.dislikedComments;
-      for(let i =0;i!=arr.length;i++){if(arr[i].toString()===commentId){return res.status(200).redirect('/post/' + req.body.postId) }  }
-       user.dislikedComments.push(commentId);
-       comment.dislikes++;
-      }
-      await comment.save() 
-      await user.save();
-   
-   res.status(200).json({user:user._doc,comment:comment._doc});
+  const comment = await Comment.findById(commentId);
 
- }
+  if (!comment) {
+    return res.status(404).json({ message: "comment not found." });
+  }
 
-const editComment = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-   if (!req.session.user) {
-      return res.json({error:'must login'})}
-   const commentId = req.body.commentId;
+  if (comment.userId.toString() !== req.session.user._id.toString()) {
+    return res
+      .status(403)
+      .json({ message: "not authorized!!!!!!!!!!!!!!!!!!" });
+  }
 
-   // console.log(req.body);
+  comment.content = req.body.content;
+  await comment.save();
+  return res.status(201).redirect("/post/" + req.body.postId);
+};
+const deleteComment = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!req.session.user) {
+    return res.redirect("/login");
+  }
+  const commentId = req.body.commentId;
 
-   const comment = await Comment.findById(commentId);
+  // console.log(req.body);
 
-   if (!comment) { return res.status(404).json({ message: 'comment not found.' }); }
+  const comment = await Comment.findById(commentId);
 
-   if (comment.userId.toString() !== req.session.user._id.toString()) {
-      return res.status(403).json({ message: 'not authorized!!!!!!!!!!!!!!!!!!' })
-   }
+  if (!comment) {
+    return res.status(404).json({ message: "comment not found." });
+  }
 
-   comment.content = req.body.content;
-   await comment.save();
-   return  res.status(201).redirect('/post/' + req.body.postId);
+  if (
+    comment.userId.toString() !== req.session.user._id.toString() &&
+    !req.session.user.isadmin
+  ) {
+    return res
+      .status(403)
+      .json({ message: "not authorized!!!!!!!!!!!!!!!!!!" });
+  }
 
-} 
-const deleteComment = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-   if (!req.session.user) {
-      return res.redirect('/login')
-   }
-   const commentId = req.body.commentId;
+  await Comment.findByIdAndDelete(commentId);
 
-   // console.log(req.body);
+  const post = await Post.findById(req.body.postId);
+  if (post) {
+    post.comments.filter((com) => com !== commentId);
+    await post.save();
+  }
 
-   const comment = await Comment.findById(commentId);
+  const user = await User.findById(req.session.user._id);
+  if (user) {
+    user.comments.filter((com) => com !== commentId);
+    await user.save();
+  }
 
-   if (!comment) { return res.status(404).json({ message: 'comment not found.' }); }
+  return res.status(201).redirect("/post/" + req.body.postId);
+};
 
-   if (comment.userId.toString() !== req.session.user._id.toString() && !req.session.user.isadmin ) {
-      return res.status(403).json({ message: 'not authorized!!!!!!!!!!!!!!!!!!' })
-   }
-
-   
-   await Comment.findByIdAndDelete(commentId);
-
-   const post = await Post.findById(req.body.postId);
-      if(post){
-         post.comments.filter((com)=>com!==commentId )
-         await post.save();
-       }
-      
-   const user =await User.findById(req.session.user._id);
-      if(user){
-         user.comments.filter((com)=>com!==commentId )
-         await user.save()
-      }
-    
-
-   return  res.status(201).redirect('/post/' + req.body.postId);
-
-}
-
-const getPosts = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-
-
-   const posts = await Post.find();
-   const arr = [];
-   for (let i = 0; i < posts.length; i++) {
-      const p = {
-         title: posts[i].title,
-         posterUrl: posts[i].posterUrl,
-         updatedAt: posts[i].updatedAt,
-         _id: posts[i]._id.toString()
-      }
-
-      // console.log(p);
-
-      arr.push(p);
-   }
-
-   res.status(200).render('../views/main/mainPage', {
-      pageTitle: 'main',
-      posts: arr,
-      errors:null
-   })
-}
-interface ICommentSchema{
-   postId:typeof Post;
-   userId:typeof User;
-   content:string;
-   _doc:{
-       userId:typeof User,
-       content:string
+const getPosts = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  const posts = await Post.find();
+  const arr = [];
+  for (let i = 0; i < posts.length; i++) {
+    const p = {
+      title: posts[i].title,
+      posterUrl: posts[i].posterUrl,
+      updatedAt: posts[i].updatedAt,
+      _id: posts[i]._id.toString(),
     };
-    createdAt:Date;
-    updatedAt:Date;
-    replay:object[];
-    parent:object
-    likes:number;
-    dislikes:number;
-    _id:any
+
+    // console.log(p);
+
+    arr.push(p);
+  }
+
+  res.status(200).render("../views/main/mainPage", {
+    pageTitle: "main",
+    posts: arr,
+    errors: null,
+  });
+};
+interface ICommentSchema {
+  postId: typeof Post;
+  userId: typeof User;
+  content: string;
+  _doc: {
+    userId: typeof User;
+    content: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+  replay: object[];
+  parent: object;
+  likes: number;
+  dislikes: number;
+  _id: any;
 }
 
-const commentsFunc =async(comment:ICommentSchema)=>{
-   const user =await User.findById(comment.userId);
-   let name;
-   let avatar;
-   if(!user){name = 'deleted user';
-   avatar ='https://as2.ftcdn.net/v2/jpg/03/32/59/65/1000_F_332596535_lAdLhf6KzbW6PWXBWeIFTovTii1drkbT.jpg'}
-   else{
-      console.log(user._doc);
-      name= user.name;
-      avatar =user.avatar;
-   }
-   return {name:name,
-           avatar:avatar,
-           content:comment.content,
-           likes:comment.likes,
-           dislikes:comment.dislikes,
-           id:comment._id.toString(),
-           userId:comment.userId.toString()}
- }
+const commentsFunc = async (comment: ICommentSchema) => {
+  const user = await User.findById(comment.userId);
+  let name;
+  let avatar;
+  if (!user) {
+    name = "deleted user";
+    avatar =
+      "https://as2.ftcdn.net/v2/jpg/03/32/59/65/1000_F_332596535_lAdLhf6KzbW6PWXBWeIFTovTii1drkbT.jpg";
+  } else {
+    console.log(user._doc);
+    name = user.name;
+    avatar = user.avatar;
+  }
+  return {
+    name: name,
+    avatar: avatar,
+    content: comment.content,
+    likes: comment.likes,
+    dislikes: comment.dislikes,
+    id: comment._id.toString(),
+    userId: comment.userId.toString(),
+  };
+};
 
-const getPost = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const getPost = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  let userId;
 
-    let userId ;
+  const postId = req.params.postId;
 
-   const postId = req.params.postId;
+  const post = await Post.findById(postId);
 
-   const post = await Post.findById(postId);
+  if (!post) {
+    return res.status(404).json({ msg: "post not found" });
+  }
+  userId = post.creator.toString();
 
-   if (!post) {
-      return res.status(404).json({ msg: "post not found" })
-   }
-   userId = post.creator.toString();
+  const coments = post.comments;
+  const arr: any[] = [];
 
-   const coments = post.comments;
-   const arr: any[] = [];
+  for (let i = 0; i != coments.length; i++) {
+    const comId = coments[i];
+    const com = await Comment.findById(comId);
+    if (!com) {
+      continue;
+    }
+    if (com.parent !== null) {
+      continue;
+    }
+    const c = await commentsFunc(com);
+    const r = [];
+    for (let j = 0; j != com.replay.length; j++) {
+      const rId = com.replay[j];
+      const rep = await Comment.findById(rId);
+      if (!rep) {
+        continue;
+      }
+      r.push(await commentsFunc(rep));
+    }
+    arr.push({ comment: c, replaies: r });
+  }
 
-   for(let i =0;i!=coments.length;i++){
-      const comId =coments[i];
-      const com =await Comment.findById(comId)
-      if(!com){continue;}
-      if(com.parent!==null){continue;}
-      const c = await commentsFunc(com);
-      const r =[];
-         for(let j=0;j!=com.replay.length;j++){
-            const rId =com.replay[j];
-            const rep =await Comment.findById(rId)
-            if(!rep){continue;}
-            r.push(await commentsFunc(rep));
-          }
-      arr.push({comment:c,replaies:r})  ;  
-   }
-
-   
-
-  return res.status(200).render('../views/main/post',
-      { postId: postId,
-        userId:userId, 
-        pageTitle: post.title, 
-        post: { ...post._doc } ,
-        comments:arr,
-      errors:null});
-}
-
-
-
+  return res
+    .status(200)
+    .render("../views/main/post", {
+      postId: postId,
+      userId: userId,
+      pageTitle: post.title,
+      post: { ...post._doc },
+      comments: arr,
+      errors: null,
+    });
+};
 
 const ex = {
-   getNewPost: getNewPost,
-   postNewPost: postNewPost,
-   postNewComment: postNewComment,
-   postNewReplay:postNewReplay,
-   getPosts: getPosts,
-   getPost: getPost,
-   getEditPost:getEditPost,
-   editPost: editPost,
-   deletePost: deletePost,
-   getmain: getmain,
-   likeComment:likeComment,
-   editComment:editComment,
-   deleteComment:deleteComment
-}
+  getNewPost: getNewPost,
+  postNewPost: postNewPost,
+  postNewComment: postNewComment,
+  postNewReplay: postNewReplay,
+  getPosts: getPosts,
+  getPost: getPost,
+  getEditPost: getEditPost,
+  editPost: editPost,
+  deletePost: deletePost,
+  getmain: getmain,
+  likeComment: likeComment,
+  editComment: editComment,
+  deleteComment: deleteComment,
+};
 
 export default ex;

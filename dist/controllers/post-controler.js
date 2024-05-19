@@ -20,99 +20,103 @@ const socket_1 = __importDefault(require("../socket"));
 const imgur_1 = require("imgur");
 const fs_1 = __importDefault(require("fs"));
 const getmain = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    res.redirect('/posts');
+    res.redirect("/posts");
 });
 const getNewPost = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    return res.render('../views/admin/newPost', {
-        pageTitle: 'new post',
+    return res.render("../views/admin/newPost", {
+        pageTitle: "new post",
         errors: null,
         oldinput: {
-            title: '',
-            content: '',
-            posterUrl: ''
-        }
+            title: "",
+            content: "",
+            posterUrl: "",
+        },
     });
 });
 const postNewPost = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     if (!req.session.user) {
-        return res.json({ error: 'must login' });
+        return res.json({ error: "must login" });
     }
     const userId = req.session.user._id;
     console.log((_a = req.file) === null || _a === void 0 ? void 0 : _a.path);
     if (!req.file) {
-        return res.render('../views/admin/newPost', {
-            pageTitle: 'new post',
-            errors: [{ msg: 'image is required!' }],
+        return res.render("../views/admin/newPost", {
+            pageTitle: "new post",
+            errors: [{ msg: "image is required!" }],
             oldinput: {
                 title: req.body.title,
                 content: req.body.content,
-                posterUrl: ''
-            }
+                posterUrl: "",
+            },
         });
     }
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
         return res.json({
-            errors: errors.array()
+            errors: errors.array(),
         });
     }
     const posterUrl = req.file.path.replace("\\", "/");
-    const client = new imgur_1.ImgurClient({ clientId: '3626e661d194984' });
+    const client = new imgur_1.ImgurClient({ clientId: process.env.clientId });
     const response = yield client.upload({
-        image: fs_1.default.readFileSync('./' + posterUrl),
-        type: 'stream',
+        image: fs_1.default.readFileSync("./" + posterUrl),
+        type: "stream",
     });
     console.log(response.data);
     const newPost = new post_1.default({
         title: req.body.title,
         content: req.body.content,
         posterUrl: response.data.link,
-        creator: userId
+        creator: userId,
     });
-    console.log('userId = ', userId);
+    console.log("userId = ", userId);
     const post = yield newPost.save();
     const user = yield user_1.default.findById(userId);
     if (!user) {
-        throw new Error('ladkj');
+        throw new Error("ladkj");
     }
     user.posts.push(post._id);
     yield user.save();
-    res.status(201).redirect('/posts');
+    res.status(201).redirect("/posts");
 });
 const getEditPost = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.session.user) {
-        return res.json({ error: 'must login' });
+        return res.json({ error: "must login" });
     }
     const postId = req.body.postId;
     const post = yield post_1.default.findById(postId);
     if (!post) {
-        return res.status(404).json({ message: 'Post not found.' });
+        return res.status(404).json({ message: "Post not found." });
     }
     if (post.creator.toString() !== req.session.user._id.toString()) {
-        return res.status(403).json({ message: 'not authorized!!!!!!!!!!!!!!!!!!' });
+        return res
+            .status(403)
+            .json({ message: "not authorized!!!!!!!!!!!!!!!!!!" });
     }
-    return res.status(200).render('../views/admin/editPost', {
-        pageTitle: 'newPost',
+    return res.status(200).render("../views/admin/editPost", {
+        pageTitle: "newPost",
         errors: null,
         oldInput: {
             title: post.title,
             content: post.content,
-            posterUrl: post.posterUrl
-        }
+            posterUrl: post.posterUrl,
+        },
     });
 });
 const editPost = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.session.user) {
-        return res.json({ error: 'must login' });
+        return res.json({ error: "must login" });
     }
     const postId = req.body.postId;
     const post = yield post_1.default.findById(postId);
     if (!post) {
-        return res.status(404).json({ message: 'Post not found.' });
+        return res.status(404).json({ message: "Post not found." });
     }
     if (post.creator.toString() !== req.session.user._id.toString()) {
-        return res.status(403).json({ message: 'not authorized!!!!!!!!!!!!!!!!!!' });
+        return res
+            .status(403)
+            .json({ message: "not authorized!!!!!!!!!!!!!!!!!!" });
     }
     post.title = req.body.title;
     post.content = req.body.content;
@@ -121,18 +125,21 @@ const editPost = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
 });
 const deletePost = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.session.user) {
-        return res.redirect('/login');
+        return res.redirect("/login");
     }
     const postId = req.body.postId;
     const post = yield post_1.default.findById(postId);
     if (!post) {
-        return res.status(404).json({ message: 'Post not found.' });
+        return res.status(404).json({ message: "Post not found." });
     }
-    if (post.creator.toString() !== req.session.user._id.toString() && !req.session.user.isadmin) {
-        return res.status(403).json({ message: 'not authorized!!!!!!!!!!!!!!!!!!' });
+    if (post.creator.toString() !== req.session.user._id.toString() &&
+        !req.session.user.isadmin) {
+        return res
+            .status(403)
+            .json({ message: "not authorized!!!!!!!!!!!!!!!!!!" });
     }
     yield post_1.default.findByIdAndDelete(postId);
-    const user = yield user_1.default.findById(req.session.user._id).populate('posts');
+    const user = yield user_1.default.findById(req.session.user._id).populate("posts");
     if (user) {
         const newposts = user.posts.filter((p) => p._id.toString() !== postId);
         user.posts = newposts;
@@ -143,7 +150,7 @@ const deletePost = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
 });
 const postNewComment = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.session.user) {
-        return res.redirect('/login');
+        return res.redirect("/login");
     }
     const errors = (0, express_validator_1.validationResult)(req);
     const userId = req.session.user._id;
@@ -153,7 +160,7 @@ const postNewComment = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     const newComment = new comment_1.default({
         postId: req.body.postId,
         content: req.body.content,
-        userId: userId
+        userId: userId,
     });
     const comment = yield newComment.save();
     const user = yield user_1.default.findById(userId);
@@ -162,27 +169,28 @@ const postNewComment = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         yield user.save();
     }
     else {
-        return res.redirect('/login');
+        return res.redirect("/login");
     }
     const post = yield post_1.default.findById(req.body.postId);
     if (post) {
         post.comments.push(comment._id);
         yield post.save();
     }
-    socket_1.default.getio().emit('newComment', { comment: {
+    socket_1.default.getio().emit("newComment", {
+        comment: {
             name: user.name,
             content: comment.content,
             likes: 0,
             dislikes: 0,
-            userId: user._id.toString()
+            userId: user._id.toString(),
         },
-        msg: 'new comment was posted'
+        msg: "new comment was posted",
     });
     return res.status(204).send();
 });
 const postNewReplay = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.session.user) {
-        return res.json({ error: 'must login' });
+        return res.json({ error: "must login" });
     }
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -192,14 +200,14 @@ const postNewReplay = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     console.log(req.body);
     const parent = yield comment_1.default.findById(req.body.commentId);
     if (!parent) {
-        console.log('post not found!!!!!');
+        console.log("post not found!!!!!");
         return res.status(404);
     }
     const replay = new comment_1.default({
         postId: req.body.postId,
         content: req.body.content,
         userId: userId,
-        parent: parent._id
+        parent: parent._id,
     });
     yield replay.save();
     parent.replay.push(replay._id);
@@ -208,24 +216,24 @@ const postNewReplay = (req, res, next) => __awaiter(void 0, void 0, void 0, func
 });
 const likeComment = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.session.user) {
-        return res.json({ error: 'must login' });
+        return res.json({ error: "must login" });
     }
     const commentId = req.body.commentId;
     const status = req.body.status;
     const comment = yield comment_1.default.findById(commentId);
     if (!comment) {
-        return res.status(500).json({ message: 'comment not found' });
+        return res.status(500).json({ message: "comment not found" });
     }
     const user = yield user_1.default.findById(req.session.user._id);
     if (!user) {
-        return res.status(500).json({ message: 'user not found' });
+        return res.status(500).json({ message: "user not found" });
     }
     console.log(status);
     if (status == 1) {
         const arr = user.likedComments;
         for (let i = 0; i != arr.length; i++) {
             if (arr[i].toString() === commentId) {
-                return res.status(200).redirect('/post/' + req.body.postId);
+                return res.status(200).redirect("/post/" + req.body.postId);
             }
         }
         user.likedComments.push(commentId);
@@ -235,7 +243,7 @@ const likeComment = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         const arr = user.dislikedComments;
         for (let i = 0; i != arr.length; i++) {
             if (arr[i].toString() === commentId) {
-                return res.status(200).redirect('/post/' + req.body.postId);
+                return res.status(200).redirect("/post/" + req.body.postId);
             }
         }
         user.dislikedComments.push(commentId);
@@ -247,33 +255,38 @@ const likeComment = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
 });
 const editComment = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.session.user) {
-        return res.json({ error: 'must login' });
+        return res.json({ error: "must login" });
     }
     const commentId = req.body.commentId;
     // console.log(req.body);
     const comment = yield comment_1.default.findById(commentId);
     if (!comment) {
-        return res.status(404).json({ message: 'comment not found.' });
+        return res.status(404).json({ message: "comment not found." });
     }
     if (comment.userId.toString() !== req.session.user._id.toString()) {
-        return res.status(403).json({ message: 'not authorized!!!!!!!!!!!!!!!!!!' });
+        return res
+            .status(403)
+            .json({ message: "not authorized!!!!!!!!!!!!!!!!!!" });
     }
     comment.content = req.body.content;
     yield comment.save();
-    return res.status(201).redirect('/post/' + req.body.postId);
+    return res.status(201).redirect("/post/" + req.body.postId);
 });
 const deleteComment = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.session.user) {
-        return res.redirect('/login');
+        return res.redirect("/login");
     }
     const commentId = req.body.commentId;
     // console.log(req.body);
     const comment = yield comment_1.default.findById(commentId);
     if (!comment) {
-        return res.status(404).json({ message: 'comment not found.' });
+        return res.status(404).json({ message: "comment not found." });
     }
-    if (comment.userId.toString() !== req.session.user._id.toString() && !req.session.user.isadmin) {
-        return res.status(403).json({ message: 'not authorized!!!!!!!!!!!!!!!!!!' });
+    if (comment.userId.toString() !== req.session.user._id.toString() &&
+        !req.session.user.isadmin) {
+        return res
+            .status(403)
+            .json({ message: "not authorized!!!!!!!!!!!!!!!!!!" });
     }
     yield comment_1.default.findByIdAndDelete(commentId);
     const post = yield post_1.default.findById(req.body.postId);
@@ -286,7 +299,7 @@ const deleteComment = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         user.comments.filter((com) => com !== commentId);
         yield user.save();
     }
-    return res.status(201).redirect('/post/' + req.body.postId);
+    return res.status(201).redirect("/post/" + req.body.postId);
 });
 const getPosts = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const posts = yield post_1.default.find();
@@ -296,15 +309,15 @@ const getPosts = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
             title: posts[i].title,
             posterUrl: posts[i].posterUrl,
             updatedAt: posts[i].updatedAt,
-            _id: posts[i]._id.toString()
+            _id: posts[i]._id.toString(),
         };
         // console.log(p);
         arr.push(p);
     }
-    res.status(200).render('../views/main/mainPage', {
-        pageTitle: 'main',
+    res.status(200).render("../views/main/mainPage", {
+        pageTitle: "main",
         posts: arr,
-        errors: null
+        errors: null,
     });
 });
 const commentsFunc = (comment) => __awaiter(void 0, void 0, void 0, function* () {
@@ -312,21 +325,24 @@ const commentsFunc = (comment) => __awaiter(void 0, void 0, void 0, function* ()
     let name;
     let avatar;
     if (!user) {
-        name = 'deleted user';
-        avatar = 'https://as2.ftcdn.net/v2/jpg/03/32/59/65/1000_F_332596535_lAdLhf6KzbW6PWXBWeIFTovTii1drkbT.jpg';
+        name = "deleted user";
+        avatar =
+            "https://as2.ftcdn.net/v2/jpg/03/32/59/65/1000_F_332596535_lAdLhf6KzbW6PWXBWeIFTovTii1drkbT.jpg";
     }
     else {
         console.log(user._doc);
         name = user.name;
         avatar = user.avatar;
     }
-    return { name: name,
+    return {
+        name: name,
         avatar: avatar,
         content: comment.content,
         likes: comment.likes,
         dislikes: comment.dislikes,
         id: comment._id.toString(),
-        userId: comment.userId.toString() };
+        userId: comment.userId.toString(),
+    };
 });
 const getPost = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     let userId;
@@ -359,12 +375,16 @@ const getPost = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         }
         arr.push({ comment: c, replaies: r });
     }
-    return res.status(200).render('../views/main/post', { postId: postId,
+    return res
+        .status(200)
+        .render("../views/main/post", {
+        postId: postId,
         userId: userId,
         pageTitle: post.title,
         post: Object.assign({}, post._doc),
         comments: arr,
-        errors: null });
+        errors: null,
+    });
 });
 const ex = {
     getNewPost: getNewPost,
@@ -379,6 +399,6 @@ const ex = {
     getmain: getmain,
     likeComment: likeComment,
     editComment: editComment,
-    deleteComment: deleteComment
+    deleteComment: deleteComment,
 };
 exports.default = ex;

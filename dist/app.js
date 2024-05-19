@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+require("dotenv/config");
 const mongoose_1 = __importDefault(require("mongoose"));
 const post_1 = __importDefault(require("./routes/post"));
 const auth_1 = __importDefault(require("./routes/auth"));
@@ -25,33 +26,38 @@ const csurf_1 = __importDefault(require("csurf"));
 const MongoDBStore = (0, connect_mongodb_session_1.default)(express_session_1.default);
 const app = (0, express_1.default)();
 app.use(express_1.default.urlencoded({ extended: true }));
+let URI = process.env.mongodbkey;
+if (!URI) {
+    URI = "no key";
+}
+// console.log(URI);
 const store = new MongoDBStore({
-    uri: 'mongodb+srv://mohsen:DZFZpuN88Gmkbdj@cluster0test.mc0rmsv.mongodb.net/gamesWebsite?retryWrites=true&w=majority',
-    collection: 'sessions'
+    uri: URI,
+    collection: "sessions",
 });
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
 // app.set('views','views');
 app.use((0, express_session_1.default)({
-    secret: 'myNewSecret',
+    secret: "myNewSecret",
     resave: false,
     saveUninitialized: false,
-    store: store
+    store: store,
 }));
-let dat2 = new Date().toISOString().replace(':', '-');
-let dat = dat2.replace(':', '-');
-dat += '-';
-dat2 = dat.split('T')[0];
+let dat2 = new Date().toISOString().replace(":", "-");
+let dat = dat2.replace(":", "-");
+dat += "-";
+dat2 = dat.split("T")[0];
 console.log(dat2);
 const fileStore = multer_1.default.diskStorage({
     destination(req, file, callback) {
-        callback(null, 'images');
+        callback(null, "images");
     },
     filename(req, file, callback) {
         callback(null, dat2 + file.originalname);
     },
 });
 const crtf = (0, csurf_1.default)();
-app.use((0, multer_1.default)({ storage: fileStore }).single('image'));
+app.use((0, multer_1.default)({ storage: fileStore }).single("image"));
 app.use(crtf);
 app.use((req, res, next) => {
     res.locals.isLogedIn = req.session.isLogedIn;
@@ -78,12 +84,9 @@ app.use(express_1.default.json());
 //app.use(bodyParser.json());
 app.use(auth_1.default);
 app.use(post_1.default);
-app.use('/css', express_1.default.static('./css/'));
-app.use('/images', express_1.default.static('./images/'));
-mongoose_1.default
-    // .connect('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.1.1')
-    .connect('mongodb+srv://mohsen:DZFZpuN88Gmkbdj@cluster0test.mc0rmsv.mongodb.net/gamesWebsite?retryWrites=true&w=majority')
-    .then(result => {
+app.use("/css", express_1.default.static("./css/"));
+app.use("/images", express_1.default.static("./images/"));
+mongoose_1.default.connect(URI).then((result) => {
     app.listen(3000);
 });
 // app.listen(3000);
