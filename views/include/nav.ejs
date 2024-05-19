@@ -1,35 +1,24 @@
 <% if(errors){ %>
-    <div id="errorsDiv">
-        <%  for(let i =0;i!=errors.length;i++){ error=errors[i];  %>
-        <div><%=error.msg%></div>
-             <% } %>
-            </div>
-   <% } %>         
+<div id="errorsDiv">
+  <% for(let i =0;i!=errors.length;i++){ error=errors[i]; %>
+  <div><%=error.msg%></div>
+  <% } %>
+</div>
+<% } %>
 <nav>
-    <a href="/posts">Posts</a>
-    <% if(!isLogedIn) {      %>   
-        <a href="/login">Login</a>
-        <a href="/signup">Signup</a>
+  <a href="/posts">gaming website</a>
+  <% if(!isLogedIn) { %>
+  <a href="/login">Login</a>
+  <a href="/signup">Signup</a>
 
-        <% }%>
-        
-        
-        
-        
-        
-        <% if(isLogedIn) {      %>   
-            <% if(isAdmin) {      %> 
-                <a href="/dashBoard">DashBoard</a>
-            <% }%>
-        <a href="/profile/<%=logedUserId%>">profile</a>
-        <form action="/logout" method="post"> 
-            <button type="submit">logout</button>
-        <input type="hidden" name="_csrf" value="<%=csrfToken%>">
-        </form>
-        <a href="/newPost">Make new Post</a>
-        <% }%>
-
-        
-
-    
+  <% }%> <% if(isLogedIn) { %> <% if(isAdmin) { %>
+  <a href="/dashBoard">DashBoard</a>
+  <% }%>
+  <a href="/profile/<%=logedUserId%>">profile</a>
+  <form action="/logout" method="post">
+    <button type="submit">logout</button>
+    <input type="hidden" name="_csrf" value="<%=csrfToken%>" />
+  </form>
+  <a href="/newPost">Make new Post</a>
+  <% }%>
 </nav>

@@ -59,11 +59,13 @@ const postNewPost = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     }
     const posterUrl = req.file.path.replace("\\", "/");
     const client = new imgur_1.ImgurClient({ clientId: process.env.clientId });
+    // console.log(client);
+    client.on("uploadProgress", (progress) => console.log(progress));
     const response = yield client.upload({
         image: fs_1.default.readFileSync("./" + posterUrl),
         type: "stream",
     });
-    console.log(response.data);
+    console.log("response is :", response.data);
     const newPost = new post_1.default({
         title: req.body.title,
         content: req.body.content,
@@ -375,9 +377,7 @@ const getPost = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         }
         arr.push({ comment: c, replaies: r });
     }
-    return res
-        .status(200)
-        .render("../views/main/post", {
+    return res.status(200).render("../views/main/post", {
         postId: postId,
         userId: userId,
         pageTitle: post.title,

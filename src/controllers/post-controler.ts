@@ -65,11 +65,15 @@ const postNewPost = async (
 
   const client = new ImgurClient({ clientId: process.env.clientId });
 
+  // console.log(client);
+
+  client.on("uploadProgress", (progress) => console.log(progress));
+
   const response = await client.upload({
     image: fs.readFileSync("./" + posterUrl),
     type: "stream",
   });
-  console.log(response.data);
+  console.log("response is :", response.data);
 
   const newPost = new Post({
     title: req.body.title,
@@ -502,16 +506,14 @@ const getPost = async (
     arr.push({ comment: c, replaies: r });
   }
 
-  return res
-    .status(200)
-    .render("../views/main/post", {
-      postId: postId,
-      userId: userId,
-      pageTitle: post.title,
-      post: { ...post._doc },
-      comments: arr,
-      errors: null,
-    });
+  return res.status(200).render("../views/main/post", {
+    postId: postId,
+    userId: userId,
+    pageTitle: post.title,
+    post: { ...post._doc },
+    comments: arr,
+    errors: null,
+  });
 };
 
 const ex = {
