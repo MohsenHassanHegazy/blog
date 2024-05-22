@@ -13,7 +13,7 @@
 
           <img src="<%=post.posterUrl%>" alt="<%=post.posterUrl %>">
         </div>
-      <input type="hidden" name="postId" id="postId" value="<%=postId%>">
+      <input type="hidden" name="postId"  value="<%=postId%>">
       <h4><%=post.content %></h2>
     </div>
   <h1>_______________________________________________</h1>
@@ -24,17 +24,17 @@
         <h3><%=comment.content%></h3>
         <h5><%=comment.likes%> like</h5> 
         <h5><%=comment.dislikes%> dislike</h5> 
-        <%  for(let j =0;j!=comments[i].replaies.length;j++){let rep = comments[i].replaies[i]  %>
+        <%  for(let j =0;j!=comments[i].replaies.length;j++){let rep = comments[i].replaies[i] ;if(!rep)continue;  %>
           <h1><%=rep.name%></h1>
           <h3><%=rep.content%></h3>
           <h5><%=rep.likes%> like</h5> 
           <h5><%=rep.dislikes%> dislike</h5>     
           <%   }  %>
         <form action="/replay" method="post">
-          <input type="text" name="content" id="content"  required >
-          <input type="hidden" name="postId" id="postId" value="<%=postId%>">
+          <input type="text" name="content"   required >
+          <input type="hidden" name="postId"  value="<%=postId%>">
           <input type="hidden" name="_csrf" value="<%=csrfToken%>">
-          <input type="hidden" name="commentId" id="commentId" value="<%=comment.id%>">
+          <input type="hidden" name="commentId"  value="<%=comment.id%>">
           
           <button type="submit"> replay</button>    
         </form>
@@ -45,8 +45,8 @@
   </div>
 <form action="/comment" method="POST" >
 
-<input type="text" name="content" id="content"  required >
-<input type="hidden" name="postId" id="postId" value="<%=postId%>">
+<input type="text" name="content"  required >
+<input type="hidden" name="postId"  value="<%=postId%>">
 <input type="hidden" name="_csrf" value="<%=csrfToken%>">
 
 <button type="submit"> comment</button>    

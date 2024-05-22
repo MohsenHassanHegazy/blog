@@ -138,8 +138,19 @@ app.use(authRoutes);
 app.use(adminRoutes);
 app.use("/css", express.static("./css/"));
 app.use("/images", express.static("./images/"));
+app.use("/views/js", express.static("./views/js"));
 
 mongoose.connect(URI).then((result) => {
-  app.listen(3000);
+  // app.listen(3000);
+  const server = createServer(app);
+  const io = socket.init(server);
+
+  io.on("connection", (socket) => {
+    console.log("a user connected");
+  });
+
+  server.listen(3000, () => {
+    console.log("listening on *:3000");
+  });
 });
 // app.listen(3000);

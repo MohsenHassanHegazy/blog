@@ -14,6 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 require("dotenv/config");
+const http_1 = require("http");
+const socket_1 = __importDefault(require("./socket"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const post_1 = __importDefault(require("./routes/post"));
 const auth_1 = __importDefault(require("./routes/auth"));
@@ -86,7 +88,16 @@ app.use(auth_1.default);
 app.use(post_1.default);
 app.use("/css", express_1.default.static("./css/"));
 app.use("/images", express_1.default.static("./images/"));
+app.use("/views/js", express_1.default.static("./views/js"));
 mongoose_1.default.connect(URI).then((result) => {
-    app.listen(3000);
+    // app.listen(3000);
+    const server = (0, http_1.createServer)(app);
+    const io = socket_1.default.init(server);
+    io.on("connection", (socket) => {
+        console.log("a user connected");
+    });
+    server.listen(3000, () => {
+        console.log("listening on *:3000");
+    });
 });
 // app.listen(3000);
