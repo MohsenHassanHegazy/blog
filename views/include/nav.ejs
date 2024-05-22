@@ -7,6 +7,10 @@
 <% } %>
 <nav>
   <a href="/posts">gaming website</a>
+  <form action="/search" method="post" class="search-box">
+    <input type="text" />
+    <button type="submit">search</button>
+  </form>
   <% if(!isLogedIn) { %>
   <a href="/login">Login</a>
   <a href="/signup">Signup</a>
@@ -14,11 +18,11 @@
   <% }%> <% if(isLogedIn) { %> <% if(isAdmin) { %>
   <a href="/dashBoard">DashBoard</a>
   <% }%>
-  <a href="/profile/<%=logedUserId%>">profile</a>
   <form action="/logout" method="post">
     <button type="submit">logout</button>
     <input type="hidden" name="_csrf" value="<%=csrfToken%>" />
   </form>
-  <a href="/newPost">Make new Post</a>
+  <a href="/profile/<%=logedUserId%>">profile</a>
+  <a href="/newPost">new Post</a>
   <% }%>
 </nav>
